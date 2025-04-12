@@ -75,6 +75,7 @@ def calculateur(altitude_desiree, taux_entree, angle_entree, puissance, sys_avio
     # Gestion de l'état CHANGEMENT_ALT
     if sys_avion.etat == EtatAvionique.CHANGEMENT_ALT:
         taux_calcule = (puissance / 10.0) * 100.0
+        angle_entree = 5 if angle_entree == 0 else angle_entree
         # Si on monte
         if sys_avion.altitude_actuelle < altitude_desiree:
             if (altitude_desiree - sys_avion.altitude_actuelle) < 1000:
@@ -85,6 +86,7 @@ def calculateur(altitude_desiree, taux_entree, angle_entree, puissance, sys_avio
             if (sys_avion.altitude_actuelle - altitude_desiree) < 1000:
                 taux_calcule *= 0.5
             taux_calcule = -taux_calcule  # Inversion du signe pour la descente
+            angle_entree = -angle_entree  # Inversion du signe pour la descente
         sys_avion.taux_monte = taux_calcule
         sys_avion.angle_attaque = angle_entree
         sys_avion.puissance_moteur = puissance
@@ -98,11 +100,11 @@ def calculateur(altitude_desiree, taux_entree, angle_entree, puissance, sys_avio
 
     if sys_avion.etat == EtatAvionique.VOL_CROISIÈRE:
         sys_avion.taux_monte = 0
+        sys_avion.angle_attaque = 0
         sys_avion.puissance_moteur = puissance
 
     # Mise à jour de l'altitude (conversion tenant compte de dt)
     delta_alt = int((sys_avion.taux_monte * 3.28084) * (dt / 60.0))
-    print(delta_alt)
     sys_avion.altitude_actuelle += delta_alt
     if sys_avion.altitude_actuelle < 0:
         sys_avion.altitude_actuelle = 0
@@ -202,7 +204,7 @@ class AvionGUI:
         word1, word2, word3 = encoder_ARINC429(self.sys_avion)
         info_text = (
             f"Altitude: {self.sys_avion.altitude_actuelle} ft | "
-            f"Vitesse: {self.sys_avion.taux_monte:.1f} m/min | "
+            f"Taux de monté: {self.sys_avion.taux_monte:.1f} m/min | "
             f"Puissance: {self.sys_avion.puissance_moteur}% | "
             f"Etat: {self.sys_avion.etat.name}\n"
             f"ARINC429: Label001: 0x{word1:08X}  Label002: 0x{word2:08X}  Label003: 0x{word3:08X}"
