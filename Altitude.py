@@ -65,7 +65,7 @@ def calculateur(altitude_desiree, taux_entree, angle_entree, puissance, sys_avio
 
     # Transition de AU_SOL à CHANGEMENT_ALT
     if sys_avion.etat == EtatAvionique.AU_SOL:
-        if altitude_desiree > 0 or (taux_entree != 0 and angle_entree != 0):
+        if (altitude_desiree > 0 and puissance > 0) or (taux_entree != 0 and angle_entree != 0):
             sys_avion.etat = EtatAvionique.CHANGEMENT_ALT
             if taux_entree == 0 and angle_entree == 0:
                 taux_entree = 100.0
@@ -134,12 +134,12 @@ class AvionGUI:
         tk.Label(self.control_frame, text="Taux de montée (m/min):").grid(row=0, column=2, sticky="w")
         self.taux_entry = tk.Entry(self.control_frame, width=10)
         self.taux_entry.grid(row=0, column=3, padx=5)
-        self.taux_entry.insert(0, "200")
+        self.taux_entry.insert(0, "0")
 
         tk.Label(self.control_frame, text="Angle d'attaque (°):").grid(row=0, column=4, sticky="w")
         self.angle_entry = tk.Entry(self.control_frame, width=10)
         self.angle_entry.grid(row=0, column=5, padx=5)
-        self.angle_entry.insert(0, "5")
+        self.angle_entry.insert(0, "0")
 
         tk.Label(self.control_frame, text="Puissance du moteur (%):").grid(row=0, column=6, sticky="w")
         self.puissance_entry = tk.Entry(self.control_frame, width=10)
