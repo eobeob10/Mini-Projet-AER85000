@@ -3,6 +3,7 @@ from tkinter import ttk
 import math
 from enum import Enum
 
+
 # Constantes du projet
 ALTITUDE_MAX = 40000    # Altitude maximale en pieds (pour la logique)
 TAUX_MAX = 800.0        # Taux de montée maximal en m/min
@@ -14,7 +15,7 @@ DT = TIME_STEP_MS / 1000.0  # dt en secondes (0.1 s)
 
 # Dimensions du canvas
 CANVAS_WIDTH = 600
-CANVAS_HEIGHT = 400
+CANVAS_HEIGHT = 800
 
 # Facteur d'exagération pour l'affichage
 EXAG_DISPLAY = 0.018
@@ -112,6 +113,7 @@ def calculateur(altitude_desiree, taux_entree, angle_entree, puissance, sys_avio
 # Classe de l'interface graphique avec animations et réinitialisation
 class AvionGUI:
     def __init__(self, root):
+
         self.root = root
         self.root.title("Simulation de Régulation d'Altitude")
         self.sys_avion = SystemeAvion()
@@ -162,6 +164,8 @@ class AvionGUI:
         # Règle verticale indiquant l'altitude
         self.draw_ruler()
 
+
+
         # Représentation de l'avion (triangle)
         self.plane = self.canvas.create_polygon(self.get_plane_coords(self.sys_avion.altitude_actuelle), fill="red")
 
@@ -179,15 +183,17 @@ class AvionGUI:
         return [x, y - size, x - size, y + size, x + size, y + size]
 
     def draw_ruler(self):
-        ruler_x = 30
-        self.canvas.create_line(ruler_x, 20, ruler_x, CANVAS_HEIGHT-20, fill="black", width=2)
+        RULER_X = 50
+        TEXT_Y_OFFSET = 10
+
+        self.canvas.create_line(RULER_X, 20, RULER_X, CANVAS_HEIGHT-20, fill="black", width=2)
         for alt in range(0, ALTITUDE_MAX+1, 5000):
             effective_alt = alt * EXAG_DISPLAY
             if effective_alt > (CANVAS_HEIGHT - 40):
                 effective_alt = CANVAS_HEIGHT - 40
             y = CANVAS_HEIGHT - 20 - effective_alt
-            self.canvas.create_line(ruler_x-5, y, ruler_x+5, y, fill="black", width=2)
-            self.canvas.create_text(ruler_x-10, y, text=str(alt), anchor="e", font=("Arial", 10))
+            self.canvas.create_line(RULER_X-5, y, RULER_X+5, y, fill="black", width=2)
+            self.canvas.create_text(RULER_X-10, y + TEXT_Y_OFFSET, text=str(alt), anchor="e", font=("Arial", 10))
 
     def update_canvas(self):
         coords = self.get_plane_coords(self.sys_avion.altitude_actuelle)
