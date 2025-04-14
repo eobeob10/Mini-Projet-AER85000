@@ -12,7 +12,7 @@ TIME_STEP_MS = 100      # Mise à jour toutes les 100 ms
 DT = TIME_STEP_MS / 1000.0  # dt en secondes
 
 CANVAS_WIDTH = 600
-CANVAS_HEIGHT = 400
+CANVAS_HEIGHT = 800
 
 EXAG_DISPLAY = 0.018
 
@@ -214,7 +214,7 @@ class AvionGUI:
 
         # Canvas for animation
         self.canvas = tk.Canvas(self.canvas_frame, width=CANVAS_WIDTH, height=CANVAS_HEIGHT, bg="skyblue")
-        self.canvas.pack(fill=tk.BOTH, expand=True)
+        self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
         # Ground line
         self.canvas.create_line(0, CANVAS_HEIGHT-20, CANVAS_WIDTH, CANVAS_HEIGHT-20, fill="green", width=4)
@@ -225,9 +225,9 @@ class AvionGUI:
         # Airplane representation (triangle)
         self.plane = self.canvas.create_polygon(self.get_plane_coords(self.sys_avion.altitude_actuelle), fill="red")
 
-        # Info label to display state and encoded values
-        self.info_label = tk.Label(root, text="", font=("Arial", 12), justify="left")
-        self.info_label.pack(side=tk.BOTTOM, pady=5)
+        # Info label on the right
+        self.info_label = tk.Label(self.canvas_frame, text="", font=("Arial", 12), justify="left", anchor="n")
+        self.info_label.pack(side=tk.RIGHT, padx=10, pady=10, fill=tk.Y)
 
     def get_plane_coords(self, altitude):
         effective_alt = altitude * EXAG_DISPLAY
@@ -239,7 +239,7 @@ class AvionGUI:
         return [x, y - size, x - size, y + size, x + size, y + size]
 
     def draw_ruler(self):
-        ruler_x = 30
+        ruler_x = 50
         self.canvas.create_line(ruler_x, 20, ruler_x, CANVAS_HEIGHT-20, fill="black", width=2)
         for alt in range(0, ALTITUDE_MAX+1, 5000):
             effective_alt = alt * EXAG_DISPLAY
