@@ -126,34 +126,38 @@ def calculateur(altitude_desiree, taux_entree, angle_entree, puissance, sys_avio
 
     # Transition from AU_SOL to CHANGEMENT_ALT.
     if sys_avion.etat == EtatAvionique.AU_SOL:
-        if altitude_desiree > 0 or (taux_entree != 0 and angle_entree != 0):
+        if (altitude_desiree > 0 and puissance > 0) or (taux_entree != 0 and angle_entree != 0):
             sys_avion.etat = EtatAvionique.CHANGEMENT_ALT
             if taux_entree == 0 and angle_entree == 0:
-                taux_entree = 100.0
-                angle_entree = 5.0
+                taux_entree = 100
+                angle_entree = 5
 
     if sys_avion.etat == EtatAvionique.CHANGEMENT_ALT:
         taux_calcule = (puissance / 10.0) * 100.0
+        angle_entree = 5 if angle_entree == 0 else angle_entree
+        # Si on monte
         if sys_avion.altitude_actuelle < altitude_desiree:
             if (altitude_desiree - sys_avion.altitude_actuelle) < 1000:
                 taux_calcule *= 0.5
         elif sys_avion.altitude_actuelle > altitude_desiree:
             if (sys_avion.altitude_actuelle - altitude_desiree) < 1000:
                 taux_calcule *= 0.5
-            taux_calcule = -taux_calcule
+            taux_calcule = -taux_calcule  # Inversion du signe pour la descente
+            angle_entree = -angle_entree  # Inversion du signe pour la descente
         sys_avion.taux_monte = taux_calcule
         sys_avion.angle_attaque = angle_entree
         sys_avion.puissance_moteur = puissance
 
         if sys_avion.angle_attaque > 15.0:
             print("Avertissement: Angle de décrochage dépassé!")
-        
-        if (sys_avion.altitude_actuelle >= altitude_desiree and altitude_desiree != 0) or sys_avion.altitude_actuelle >= ALTITUDE_MAX:
+        # Passage en VOL_CROISIÈRE si l'altitude désirée est atteinte
+        if (sys_avion.altitude_actuelle == altitude_desiree and altitude_desiree != 0) or sys_avion.altitude_actuelle >= ALTITUDE_MAX:
             sys_avion.etat = EtatAvionique.VOL_CROISIÈRE
             sys_avion.taux_monte = 0
 
     if sys_avion.etat == EtatAvionique.VOL_CROISIÈRE:
         sys_avion.taux_monte = 0
+        sys_avion.angle_attaque = 0
         sys_avion.puissance_moteur = puissance
 
     # Update altitude: conversion from rate (m/min) to ft/min (1 m/min ≃ 3.28084 ft/min)
@@ -188,12 +192,12 @@ class AvionGUI:
         tk.Label(self.control_frame, text="Taux de montée (m/min):").grid(row=0, column=2, sticky="w")
         self.taux_entry = tk.Entry(self.control_frame, width=10)
         self.taux_entry.grid(row=0, column=3, padx=5)
-        self.taux_entry.insert(0, "200")
+        self.taux_entry.insert(0, "0")
 
         tk.Label(self.control_frame, text="Angle d'attaque (°):").grid(row=0, column=4, sticky="w")
         self.angle_entry = tk.Entry(self.control_frame, width=10)
         self.angle_entry.grid(row=0, column=5, padx=5)
-        self.angle_entry.insert(0, "5")
+        self.angle_entry.insert(0, "0")
 
         tk.Label(self.control_frame, text="Puissance du moteur (%):").grid(row=0, column=6, sticky="w")
         self.puissance_entry = tk.Entry(self.control_frame, width=10)
@@ -267,8 +271,7 @@ class AvionGUI:
         )
         info_text = (
             f"Altitude: {self.sys_avion.altitude_actuelle} ft | "
-            f"Taux: {self.sys_avion.taux_monte:.1f} m/min | "
-            f"Angle: {self.sys_avion.angle_attaque:.1f}° | "
+            f"Taux de monté: {self.sys_avion.taux_monte:.1f} m/min | "
             f"Puissance: {self.sys_avion.puissance_moteur}% | "
             f"Etat: {self.sys_avion.etat.name}\n\n"
             f"{arinc_text}\n\n"
@@ -279,14 +282,13 @@ class AvionGUI:
     def simulation_step(self):
         try:
             altitude_desiree = int(self.altitude_entry.get())
-            taux_entree = float(self.taux_entry.get())
-            angle_entree = float(self.angle_entry.get())
+            taux_entree = int(self.taux_entry.get())
+            angle_entree = int(self.angle_entry.get())
             puissance = int(self.puissance_entry.get())
         except ValueError:
             print("Entrée invalide.")
             self.stop_simulation()
             return
-
         calculateur(altitude_desiree, taux_entree, angle_entree, puissance, self.sys_avion, dt=DT)
         self.update_canvas()
         if self.running:
